@@ -8,12 +8,12 @@ firebase_admin.initialize_app(cred, {
 })
 
 dbref = db.reference("StudentsList")
-dbref.push( { "ID": 1, "Name": "Karl", "Year": 4, "Course": 'BSIT' } )
-dbref.push( { "ID": 2, "Name": "Jomari", "Year": 3, "Course": 'BSIT' } )
-dbref.push( { "ID": 3, "Name": "Cheska", "Year": 3, "Course": 'BSIT' } )
-dbref.push( { "ID": 4, "Name": "Anthony", "Year": 3, "Course": 'BSIT' } )
+dbref.push( { "ID": 1, "FirstName": "Karl", "LastName": "Gonzales", "Year": 4, "Course": 'BSIT' } )
+dbref.push( { "ID": 2, "FirstName": "Cheska", "LastName": "Gubaton", "Year": 4, "Course": 'BSIT' } )
+dbref.push( { "ID": 3, "FirstName": "Jomari", "LastName": "Profeta", "Year": 4, "Course": 'BSIT' } )
+dbref.push( { "ID": 4, "FirstName": "Anthony", "LastName": "Panalingan", "Year": 4, "Course": 'BSIT' } )
+
 
 
 print(dbref.get())
-
-{'-NTXSZqAac846THZbkQw': {'Course': 'BSIT', 'ID': 1, 'Name': 'Karl', 'Year': 4}, '-NTXSZu7WdWEzXg6uzrC': {'Course': 'BSIT', 'ID': 2, 'Name': 'Jomari', 'Year': 3}, '-NTXSZxcgmnaj-VLD5Vc': {'Course': 'BSIT', 'ID': 3, 'Name': 'Cheska', 'Year': 3}, '-NTXS_07HJjfdt-qamyw': {'Course': 'BSIT', 'ID': 4, 'Name': 'Anthony', 'Year': 3}}
+{'-NTlvm9xRj3D_YiMP0k7': {'Course': 'BSIT', 'FirstName': 'Karl', 'ID': 1, 'LastName': 'Gonzales', 'Year': 4}, '-NTlvmDHpdgRWLQtj_Xp': {'Course': 'BSIT', 'FirstName': 'Cheska', 'ID': 2, 'LastName': 'Gubaton', 'Year': 4}, '-NTlvmGi52V96FE_-hQW': {'Course': 'BSIT', 'FirstName': 'Jomari', 'ID': 3, 'LastName': 'Profeta', 'Year': 4}, '-NTlvmK5grP9Rdo9v3Ss': {'Course': 'BSIT', 'FirstName': 'Anthony', 'ID': 4, 'LastName': 'Panalingan', 'Year': 4}}

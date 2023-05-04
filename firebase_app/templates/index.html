@@ -1,39 +1,344 @@
 <!DOCTYPE html>
 <html lang="en-US" dir="ltr">
+
 <head>
     <title>Students List</title>
-    
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" crossorigin="anonymous"
-	href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" >
-    
-	<script crossorigin="anonymous"
-	src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" >
-	</script>
-</head>
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
 
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+          integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous"/>
+    <script src="https://kit.fontawesome.com/c326dfdc36.js" crossorigin="anonymous"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-database.js"></script>
+    {% load static %}
+    <script type="text/javascript" src="{% static '/js/firebaseConfig.js' %}"></script>
+    <script>
+
+        $(document).ready(function () {
+            $( ".btn-lg" ).click(function() {
+             $(this).toggleClass('btn-success');
+             $(this).toggleClass('btn-danger'); // Add this line
+        });
+            $('#sort-by-name-button').on('click', function() {
+                var rows = $('#students-table tbody tr').get();
+                rows.sort(function(row1, row2) {
+                    var lname1 = $(row1).data('lname');
+                    var lname2 = $(row2).data('lname');
+                    return lname1.localeCompare(lname2);
+                });
+                $.each(rows, function(index, row) {
+                    $('#students-table tbody').append(row);
+                });
+            });
+
+            $('#search-button').on('click', function() {
+                var searchTerm = $('#search-input').val().toLowerCase();
+                $('#students-table tbody tr').each(function() {
+                  var name = $(this).find('.lname').text().toLowerCase();
+                  if (name.indexOf(searchTerm) === -1) {
+                    $(this).hide();
+                  } else {
+                    $(this).show();
+                  }
+                });
+              });
+
+            $('#clear-button').on('click', function() {
+                $('#search-input').val('');
+                $('#students-table tbody tr').show();
+              });
+
+
+            $('#sort-button').on('click', function() {
+                var $table = $('#students-table');
+                var $tbody = $table.find('tbody');
+                var $rows = $tbody.find('tr');
+                $rows.sort(function(a, b) {
+                    var lnameA = $(a).find('.lname').text().toLowerCase();
+                    var lnameB = $(b).find('.lname').text().toLowerCase();
+                    if (lnameA < lnameB) return -1;
+                    if (lnameA > lnameB) return 1;
+                    return 0;
+                });
+                $tbody.html($rows);
+              });
+
+
+
+            $('#add-student').on('submit', function (e) {
+                e.preventDefault();
+
+                var id = parseInt($('#id').val());
+                var fname = $('#fname').val();
+                var lname = $('#lname').val();
+                var year = parseInt($('#year').val());
+                var course = $('#course').val();
+
+                database.ref('StudentsList').push({
+                    ID: id,
+                    FirstName: fname,
+                    LastName: lname,
+                    Year: year,
+                    Course: course
+                }).then(function () {
+                    $('#exampleModal').modal('hide');
+                    location.reload();
+                }).catch(function (error) {
+                    console.error(error);
+                });
+            });
+
+            $('#add-student-btn').on('click', function () {
+                $('#exampleModal').modal('show');
+            });
+
+            $('.edit-student').on('click', function (e) {
+                e.preventDefault();
+
+                var studentKey = $(this).data('key');
+
+                database.ref('StudentsList').child(studentKey).once('value', function (snapshot) {
+                    var student = snapshot.val();
+
+                    $('#update-id').val(student.ID);
+                    $('#update-fname').val(student.FirstName);
+                    $('#update-lname').val(student.LastName);
+                    $('#update-year').val(student.Year);
+                    $('#update-course').val(student.Course);
+                    $('#update-student-key').val(studentKey);
+
+                    $('#update-student-modal').modal('show');
+                });
+            });
+
+            $('#update-student-form').on('submit', function (e) {
+                e.preventDefault();
+
+                var id = parseInt($('#update-id').val());
+                var fname = $('#update-fname').val();
+                var lname = $('#update-lname').val();
+                var year = parseInt($('#update-year').val());
+                var course = $('#update-course').val();
+                var key = $('#update-student-key').val();
+
+                $.ajax({
+                    url: '/update_student/',
+                    type: 'POST',
+                    data: {
+                        'id': id,
+                        'fname': fname,
+                        'lname': lname,
+                        'year': year,
+                        'course': course,
+                        'key': key,
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+                    },
+                    success: function (data) {
+                        if (data.status == 'success') {
+                            $('#update-student-modal').modal('hide');
+                            location.reload();
+                        } else {
+                            alert(data.errors);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+
+
+    </script>
+
+</head>
 <body>
-    <h2>Students List</h2>
-    <a class="btn btn-primary" href="addstudent">Add New Student</a>
-    <table class="table">
-        <thead>
-            <tr>
-            <th scope="col">Id</th>
-            <th scope="col">Name</th>
-            <th scope="col">Year</th>
-            <th scope="col">Course</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for student in students %}
-                <tr>
-                    <td>{{ student.id }}</td>
-                    <td>{{ student.name }}</td>
-                    <td>{{ student.year }}</td>
-                    <td>{{ student.course }}</td>
-                    <td><a href='updatestudent/{{ student.id }}'>Edit</a></td>
-                    <td><a href='deletestudent/{{ student.id }}'>Delete</a></td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-auto bg-light sticky-top">
+            <div class="d-flex flex-sm-column flex-row flex-nowrap bg-light align-items-center sticky-top">
+                <a href="" class="d-block p-3 link-dark text-decoration-none" title="" data-bs-toggle="tooltip"
+                   data-bs-placement="right" data-bs-original-title="Icon-only">
+                    <i class="fas fa-chalkboard-teacher fa-lg"></i>
+                </a>
+                <ul class="nav nav-pills nav-flush flex-sm-column flex-row flex-nowrap mb-auto mx-auto text-center align-items-center">
+
+                    <li>
+                        <a href="" class="nav-link py-3 px-2" title="" data-bs-toggle="tooltip"
+                           data-bs-placement="right" data-bs-original-title="Dashboard">
+                            <i class="fas fa-tachometer fa-lg"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'index' %}" class="nav-link py-3 px-2" title="" data-bs-toggle="tooltip"
+                           data-bs-placement="right" data-bs-original-title="Students">
+                            <i class="fas fa-users fa-lg"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'attendance' %}" class="nav-link py-3 px-2" title="" data-bs-toggle="tooltip"
+                           data-bs-placement="right" data-bs-original-title="Attendance">
+                            <i class="fas fa-calendar-alt fa-lg"></i>
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+        </div>
+        <div class="col-sm p-3 min-vh-100">
+            <!-- content -->
+
+            <div class="container">
+                <h2>Attendance Monitoring System</h2>
+
+                <div class="row mb-5">
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="search-input" placeholder="Search by Last Name">
+                    </div>
+                    <div class="col-sm-2">
+
+                        <button class="btn btn-primary" id="search-button">Search</button>
+                        <button class="btn btn-danger" id="clear-button">Clear</button>
+                    </div>
+                    <div class="col-sm-2">
+                        <button class="btn btn-secondary" id="sort-button">Sort by Last Name</button>
+                    </div>
+
+                </div>
+
+                <button type="button" class="btn btn-primary" id="add-student-btn">Add New Student</button>
+                <table class="table table-striped" id="students-table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Year</th>
+                        <th>Course</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td class="id">{{ student.id }}</td>
+                        <td class="fname">{{ student.fname }}</td>
+                        <td class="lname">{{ student.lname }}</td>
+                        <td class="year">{{ student.year }}</td>
+                        <td class="course">{{ student.course }}</td>
+                        <td>
+                            <a href="#" class="edit-student btn btn-secondary" data-key="{{ student.key }}"
+                               data-bs-toggle="modal" data-bs-target="#update-student-modal">Edit</a>
+                            <a class="btn btn-danger" href='deletestudent/{{ student.id }}'>Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+
+                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+                     aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Add New Student</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="add-student">
+                                    <div class="form-group row">
+                                        <label for="id">Id</label>
+                                        <input type="number" class="form-control" name="id" id="id" required>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="fname">FirstName</label>
+                                        <input type="text" class="form-control" name="fname" id="fname" required>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="lname">Last Name</label>
+                                        <input type="text" class="form-control" name="lname" id="lname" required>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="year">Year</label>
+                                        <input type="number" class="form-control" name="year" id="year" required>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="course">Course</label>
+                                        <input type="text" class="form-control" name="course" id="course" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="update-student-modal" tabindex="-1"
+                     aria-labelledby="update-student-modal-label"
+                     aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form id="update-student-form">
+                                {% csrf_token %}
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="update-student-modal-label">Update Student</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group row">
+                                        <label for="update-id">Id</label>
+                                        <input type="number" class="form-control" name="id" id="update-id" required>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="update-fname">First Name</label>
+                                        <input type="text" class="form-control" name="fname" id="update-fname" required>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="update-lname">Last Name</label>
+                                        <input type="text" class="form-control" name="lname" id="update-lname" required>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="update-year">Year</label>
+                                        <input type="number" class="form-control" name="year" id="update-year" required>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="update-course">Course</label>
+                                        <input type="text" class="form-control" name="course" id="update-course"
+                                               required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Save changes</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close
+                                    </button>
+                                    <input type="hidden" id="update-student-key">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
 </body>
+
+</html>

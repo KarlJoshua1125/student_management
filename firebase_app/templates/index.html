@@ -41,6 +41,8 @@
                 });
             });
 
+            
+
             $('#search-button').on('click', function() {
                 var searchTerm = $('#search-input').val().toLowerCase();
                 $('#students-table tbody tr').each(function() {
@@ -68,6 +70,20 @@
                     var lnameB = $(b).find('.lname').text().toLowerCase();
                     if (lnameA < lnameB) return -1;
                     if (lnameA > lnameB) return 1;
+                    return 0;
+                });
+                $tbody.html($rows);
+              });
+
+              $('#sort-buttonid').on('click', function() {
+                var $table = $('#students-table');
+                var $tbody = $table.find('tbody');
+                var $rows = $tbody.find('tr');
+                $rows.sort(function(a, b) {
+                    var idA = $(a).find('.id').text().toLowerCase();
+                    var idB = $(b).find('.id').text().toLowerCase();
+                    if (idA < idB) return -1;
+                    if (idA > idB) return 1;
                     return 0;
                 });
                 $tbody.html($rows);
@@ -214,6 +230,9 @@
                     <div class="col-sm-2">
                         <button class="btn btn-secondary" id="sort-button">Sort by Last Name</button>
                     </div>
+                    <div class="col-sm-2">
+                        <button class="btn btn-secondary" id="sort-buttonid">Sort by ID</button>
+                    </div>
 
                 </div>
 
@@ -238,9 +257,15 @@
                         <td class="year">{{ student.year }}</td>
                         <td class="course">{{ student.course }}</td>
                         <td>
-                            <a href="#" class="edit-student btn btn-secondary" data-key="{{ student.key }}"
-                               data-bs-toggle="modal" data-bs-target="#update-student-modal">Edit</a>
-                            <a class="btn btn-danger" href='deletestudent/{{ student.id }}'>Delete</a>
+                            <a href="#" class="edit-student btn btn-success" data-key="{{ student.key }}"
+                            data-bs-toggle="modal" data-bs-target="#update-student-modal">
+                            <i class="fas fa-edit"></i>
+                         </a>
+                         
+                         <a class="btn btn-danger" href='deletestudent/{{ student.id }}'>
+                            <i class="fas fa-trash-alt"></i>
+                         </a>
+                         
                         </td>
                     </tr>
                     {% endfor %}
